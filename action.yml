@@ -39,6 +39,12 @@ runs:
         if [[ -z "${{ inputs.path }}" ]]; then
           echo '::error::You must provide a path !'
           exit 1
+        elif [[ ! -f "${{ inputs.path }}" ]]; then
+          echo '::error::Provided file doesn'"'"'t exist !'
+          exit 1
+        elif [[ ! -r "${{ inputs.path }}" ]]; then
+          echo '::error::Provided file is not readable !'
+          exit 1
         elif [[ -z "${{ inputs.dependency }}" ]]; then
           echo '::error::You must provide a dependency !'
           exit 1
