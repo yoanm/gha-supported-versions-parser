@@ -65,3 +65,24 @@ runs:
         NEXT=$( jq -r '.${{ inputs.dependency }}.next' ${{ runner.temp }}/${{ github.job }}/supported-versions.json )
         echo "Next ${{ inputs.dependency }} version: $NEXT"
         echo "next=$NEXT" >> $GITHUB_OUTPUT
+
+    - uses: actions/github-script@v7
+      continue-on-error: true
+      with:
+        script: |
+          await core.summary
+            .addHeading('Supported ${{ inputs.dependency }} versions')
+            .addTable([
+              [
+                {data: 'Min ↦', header: true},
+                {data: '↤ Max', header: true},
+                {data: '🔬 Next', header: true}
+              ],
+              [
+                '${{ steps.parse-versions.outputs.min }}',
+                '${{ steps.parse-versions.outputs.max }}',
+                '${{ steps.parse-versions.outputs.next }}'
+              ]
+            ])
+            .write()
+          ;
