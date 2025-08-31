@@ -40,20 +40,28 @@ runs:
           exit 1
         fi
 
+    - name: Download supported version file
+      shell: bash
+      run: |
+        # Download supported versions file ...
+
+        mkdir -p ${{ runner.temp }}/${{ github.job }} && \
+        curl --silent --show-error "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref }}/${{ inputs.path }}" > ${{ runner.temp }}/${{ github.job }}/supported-versions.json
+
     - id: parse-versions
       shell: bash
       run: |
         # Parse ${{ inputs.dependency }} versions ...
 
         # Lowest version to assess (e.g Lowest supported version including security support)
-        MIN=$( jq -r '.${{ inputs.dependency }}.min' ${{ inputs.path }} )
+        MIN=$( jq -r '.${{ inputs.dependency }}.min' ${{ runner.temp }}/${{ github.job }}/supported-versions.json )
         echo "Min ${{ inputs.dependency }} version: $MIN"
         echo "min=$MIN" >> $GITHUB_OUTPUT
         # Highest version to assess (e.g Highest supported version)
-        MAX=$( jq -r '.${{ inputs.dependency }}.max' ${{ inputs.path }} )
+        MAX=$( jq -r '.${{ inputs.dependency }}.max' ${{ runner.temp }}/${{ github.job }}/supported-versions.json )
         echo "Max ${{ inputs.dependency }} version: $MAX"
         echo "max=$MAX" >> $GITHUB_OUTPUT
         # Next (currently not supported) version to assess (e.g Current dev version)
-        NEXT=$( jq -r '.${{ inputs.dependency }}.next' ${{ inputs.path }} )
+        NEXT=$( jq -r '.${{ inputs.dependency }}.next' ${{ runner.temp }}/${{ github.job }}/supported-versions.json )
         echo "Next ${{ inputs.dependency }} version: $NEXT"
         echo "next=$NEXT" >> $GITHUB_OUTPUT
