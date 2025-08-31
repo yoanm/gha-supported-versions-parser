@@ -1,0 +1,49 @@
+name: github-downloader
+description: |
+  @TODO
+
+inputs:
+  path:
+    description: Path to the supported versions file from inside the repository
+    required: true
+  ref:
+    description: Reference to fetch
+    required: false
+    default: "${{ github.ref }}"
+  fetch-dir:
+    description: Directory where to fetch the supported version file
+    required: false
+    default: '${{ runner.temp }}'
+
+outputs:
+  path:
+    description: Path to the downloaded file
+    value: ${{ env.DWL_PATH }}
+
+runs:
+  using: composite
+  steps:
+    # Even if an input is marked as "required", empty/no value may be passed !
+    - shell: bash
+      env:
+        DWL_PATH: ${{ inputs.fetch-dir }}/supported-versions.json
+      run: |
+        # 🔎 Validate provided inputs ...
+
+        if [[ -z "${{ inputs.path }}" ]]; then
+          echo '::error::You must provide a path !'
+          exit 1
+        elif [[ -z "${{ inputs.ref }}" ]]; then
+          echo '::error::Ref is invalid !'
+          exit 1
+        elif [[ -z "${{ inputs.fetch-dir }}" ]]; then
+          echo '::error::Fetch directory is invalid !'
+          exit 1
+        fi
+
+    - shell: bash
+      run: |
+        # ⬇️  Download supported versions file ...
+
+        mkdir -p '${{ inputs.fetch-dir }}' && \
+        curl --silent --show-error 'https://raw.githubusercontent.com/${{ github.repository }}/${{ inputs.ref }}/${{ inputs.path }}' > '${DWL_PATH}'
