@@ -18,6 +18,6 @@ jobs:
           fetch-depth: 0
 
       - name: Generate vX and vX.Y tags
-        uses: ./
+        uses: yoanm/gha-versioning@v1
         with:
           tag: ${{ github.event.release.tag_name }}
