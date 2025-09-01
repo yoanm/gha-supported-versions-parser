@@ -47,6 +47,6 @@ runs:
         # ⬇️  Download supported versions file ...
 
         mkdir -p '${{ inputs.fetch-dir }}' && \
-        curl --silent --show-error 'https://raw.githubusercontent.com/${{ github.repository }}/${{ inputs.ref }}/${{ inputs.file-path }}' > "${DWL_PATH}"
+        curl ${{ runner.debug && '' || '--silent' }} --show-error --fail 'https://raw.githubusercontent.com/${{ github.repository }}/${{ inputs.ref }}/${{ inputs.file-path }}'
 
         echo "path=${DWL_PATH}" >> $GITHUB_OUTPUT
