@@ -132,6 +132,13 @@ jobs:
             echo "::error::Invalid path: expected '$EXPECTED_PATH', got '$ACTUAL_PATH' !"
             exit 1
           fi
+          if [[ ! -f "$ACTUAL_PATH" ]]; then
+            echo '::error::File doesn'"'"'t exist !'
+            exit 1
+          elif [[ ! -r "$ACTUAL_PATH" ]]; then
+            echo '::error::File is not readable !'
+            exit 1
+          fi
 
       - name: Downloader - Invalid path test
         id: downloader-invalid-path-test
