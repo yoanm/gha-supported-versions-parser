@@ -1,0 +1,101 @@
+name: gha-supported-versions-parser
+description: |
+  Parses supported versions file
+branding:
+  icon: search
+  color: green
+
+inputs:
+  path:
+    description: Path to the supported versions file
+    required: true
+  dependency:
+    description: Dependency name to fetch
+    required: true
+  with-summary:
+    description: Whether to add a summary or not
+    required: false
+    default: true
+
+outputs:
+  min:
+    description: Minimal version configured for the given dependency
+    value: ${{ steps.parse-versions.outputs.min }}
+  max:
+    description: Maximal version configured for the given dependency
+    value: ${{ steps.parse-versions.outputs.max }}
+  next:
+    description: Next version configured for the given dependency
+    value: ${{ steps.parse-versions.outputs.next }}
+
+runs:
+  using: composite
+  steps:
+    # Even if an input is marked as "required", empty/no value may be passed !
+    - shell: bash
+      run: |
+        # 🔎 Validate provided inputs ...
+
+        if [[ -z "${{ inputs.path }}" ]]; then
+          echo '::error::You must provide a path !'
+          exit 1
+        elif [[ ! -f "${{ inputs.path }}" ]]; then
+          echo '::error::Provided file doesn'"'"'t exist !'
+          exit 1
+        elif [[ ! -r "${{ inputs.path }}" ]]; then
+          echo '::error::Provided file is not readable !'
+          exit 1
+        elif [[ -z "${{ inputs.dependency }}" ]]; then
+          echo '::error::You must provide a dependency !'
+          exit 1
+        fi
+
+        # Ensure dependency is configured
+        if [[ ! "$(cat '${{ inputs.path }}' | jq '."${{ inputs.dependency }}" | length')" -gt 0 ]]; then
+          echo "::error::${{ inputs.dependency }} doesn't seem to exist !"
+          exit 1
+        fi
+
+    - id: parse-versions
+      shell: bash
+      run: |
+        # 🔬 Parse ${{ inputs.dependency }} versions ...
+
+        # Lowest version to assess (e.g Lowest supported version including security support)
+        echo "min=$( jq -r '."${{ inputs.dependency }}".min' '${{ inputs.path }}' )" >> $GITHUB_OUTPUT
+        # Highest version to assess (e.g Highest supported version)
+        echo "max=$( jq -r '."${{ inputs.dependency }}".max' '${{ inputs.path }}' )" >> $GITHUB_OUTPUT
+        # Next (currently not supported) version to assess (e.g Current dev version)
+        echo "next=$( jq -r '."${{ inputs.dependency }}".next' '${{ inputs.path }}' )" >> $GITHUB_OUTPUT
+
+
+    - shell: bash
+      continue-on-error: true
+      run: |
+        # ℹ️ Info
+
+        echo "Min ${{ inputs.dependency }} version: ${{ steps.parse-versions.outputs.min }}"
+        echo "Max ${{ inputs.dependency }} version: ${{ steps.parse-versions.outputs.max }}"
+        echo "Next ${{ inputs.dependency }} version: ${{ steps.parse-versions.outputs.next }}"
+
+    - uses: actions/github-script@v7
+      if: ${{ inputs.with-summary }}
+      continue-on-error: true
+      with:
+        script: |
+          await core.summary
+            .addHeading('Supported ${{ inputs.dependency }} versions')
+            .addTable([
+              [
+                {data: 'Min ↦', header: true},
+                {data: '↤ Max', header: true},
+                {data: '🔬 Next', header: true}
+              ],
+              [
+                '${{ steps.parse-versions.outputs.min }}',
+                '${{ steps.parse-versions.outputs.max }}',
+                '${{ steps.parse-versions.outputs.next }}'
+              ]
+            ])
+            .write()
+          ;
