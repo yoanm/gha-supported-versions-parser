@@ -50,17 +50,23 @@ runs:
           exit 1
         fi
 
+        # Ensure dependency is configured
+        if [[ ! "$(cat '${{ inputs.path }}' | jq '."${{ inputs.dependency }}" | length')" -gt 0 ]]; then
+          echo "::error::${{ inputs.dependency }} doesn't seem to exist !"
+          exit 1
+        fi
+
     - id: parse-versions
       shell: bash
       run: |
         # 🔬 Parse ${{ inputs.dependency }} versions ...
 
         # Lowest version to assess (e.g Lowest supported version including security support)
-        echo "min=$( jq -r '.${{ inputs.dependency }}.min' '${{ inputs.path }}' )" >> $GITHUB_OUTPUT
+        echo "min=$( jq -r '."${{ inputs.dependency }}".min' '${{ inputs.path }}' )" >> $GITHUB_OUTPUT
         # Highest version to assess (e.g Highest supported version)
-        echo "max=$( jq -r '.${{ inputs.dependency }}.max' '${{ inputs.path }}' )" >> $GITHUB_OUTPUT
+        echo "max=$( jq -r '."${{ inputs.dependency }}".max' '${{ inputs.path }}' )" >> $GITHUB_OUTPUT
         # Next (currently not supported) version to assess (e.g Current dev version)
-        echo "next=$( jq -r '.${{ inputs.dependency }}.next' '${{ inputs.path }}' )" >> $GITHUB_OUTPUT
+        echo "next=$( jq -r '."${{ inputs.dependency }}".next' '${{ inputs.path }}' )" >> $GITHUB_OUTPUT
 
 
     - shell: bash
