@@ -66,8 +66,29 @@ jobs:
 
       - name: Validate "Unknown dependency"
         shell: bash
+        env:
+          ACTUAL_OUTCOME: "${{ steps.unknown-dep-test.outcome }}"
+          EXPECTED_OUTCOME: "success"
+          ACTUAL_CONCLUSION: "${{ steps.unknown-dep-test.conclusion }}"
+          EXPECTED_CONCLUSION: "success"
+          ACTUAL_OUTPUTS: "${{ toJSON(steps.unknown-dep-test.outputs) }}"
+          EXPECTED_OUTPUTS: |
+            {
+              "min": "",
+              "max": "",
+              "next": ""
+            }
         run: |
-          echo "${{ toJSON(steps.unknown-dep-test) }}"
+          if [[ "$ACTUAL_OUTCOME" != "$EXPECTED_OUTCOME" ]]; then
+            echo "::error::Invalid outcome: expected '$EXPECTED_OUTCOME', got '$ACTUAL_OUTCOME' !"
+            exit 1
+          elif [[ "$ACTUAL_CONCLUSION" != "$EXPECTED_CONCLUSION" ]]; then
+            echo "::error::Invalid conclusion: expected '$EXPECTED_CONCLUSION', got '$ACTUAL_CONCLUSION' !"
+            exit 1
+          elif [[ "$ACTUAL_OUTPUTS" != "$EXPECTED_OUTPUTS" ]]; then
+            echo "::error::Invalid outputs: expected '$EXPECTED_OUTPUTS', got '$ACTUAL_OUTPUTS' !"
+            exit 1
+          fi
 
       - name: Unknown file
         id: unknown-file-test
@@ -79,5 +100,26 @@ jobs:
 
       - name: Validate "Unknown file"
         shell: bash
+        env:
+          ACTUAL_OUTCOME: "${{ steps.unknown-file-test.outcome }}"
+          EXPECTED_OUTCOME: "failure"
+          ACTUAL_CONCLUSION: "${{ steps.unknown-file-test.conclusion }}"
+          EXPECTED_CONCLUSION: "success"
+          ACTUAL_OUTPUTS: "${{ toJSON(steps.unknown-file-test.outputs) }}"
+          EXPECTED_OUTPUTS: |
+            {
+              "min": "",
+              "max": "",
+              "next": ""
+            }
         run: |
-          echo "${{ toJSON(steps.unknown-file-test) }}"
+          if [[ "$ACTUAL_OUTCOME" != "$EXPECTED_OUTCOME" ]]; then
+            echo "::error::Invalid outcome: expected '$EXPECTED_OUTCOME', got '$ACTUAL_OUTCOME' !"
+            exit 1
+          elif [[ "$ACTUAL_CONCLUSION" != "$EXPECTED_CONCLUSION" ]]; then
+            echo "::error::Invalid conclusion: expected '$EXPECTED_CONCLUSION', got '$ACTUAL_CONCLUSION' !"
+            exit 1
+          elif [[ "$ACTUAL_OUTPUTS" != "$EXPECTED_OUTPUTS" ]]; then
+            echo "::error::Invalid outputs: expected '$EXPECTED_OUTPUTS', got '$ACTUAL_OUTPUTS' !"
+            exit 1
+          fi
