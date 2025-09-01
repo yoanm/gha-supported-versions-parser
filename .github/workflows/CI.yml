@@ -8,8 +8,6 @@ on: # Build any PRs and main branch changes
       - synchronize
   push:
     branches: [ master ]
-  schedule:
-    - cron: '0 0 1 * *' # Every month
 
 permissions:
   contents: read
@@ -28,14 +26,14 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v5
 
-      - name: Basic test
+      - name: Parser - Basic test
         id: basic-test
         uses: ./
         with:
           path: tests/data/basic-test.json
           dependency: php
 
-      - name: Validate "Basic test"
+      - name: Validate "Parser - Basic test"
         shell: bash
         env:
           ACTUAL_MIN: "${{ steps.basic-test.outputs.min }}"
@@ -56,7 +54,7 @@ jobs:
             exit 1
           fi
 
-      - name: Unknown dependency
+      - name: Parser - Unknown dependency
         id: unknown-dep-test
         continue-on-error: true
         uses: ./
@@ -64,7 +62,7 @@ jobs:
           path: tests/data/basic-test.json
           dependency: unknown-dep
 
-      - name: Validate "Unknown dependency"
+      - name: Validate "Parser - Unknown dependency"
         shell: bash
         env:
           ACTUAL_OUTCOME: "${{ steps.unknown-dep-test.outcome }}"
@@ -87,7 +85,7 @@ jobs:
             exit 1
           fi
 
-      - name: Unknown file
+      - name: Parser - Unknown file test
         id: unknown-file-test
         continue-on-error: true
         uses: ./
@@ -95,7 +93,7 @@ jobs:
           path: a/non/existent/file
           dependency: php
 
-      - name: Validate "Unknown file"
+      - name: Validate "Parser - Unknown file test"
         shell: bash
         env:
           ACTUAL_OUTCOME: "${{ steps.unknown-file-test.outcome }}"
