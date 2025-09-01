@@ -1,9 +1,9 @@
 name: gha-supported-versions-parser
 description: |
   @TODO
-#branding: # @TODO
-#  icon: tag
-#  color: yellow
+branding:
+  icon: search
+  color: green
 
 inputs:
   path:
