@@ -1,6 +1,6 @@
 # gha-supported-versions-parser
 
-![GitHub Tag](https://img.shields.io/github/v/tag/yoanm/gha-supported-versions-parser?sort=semver&logo=githubactions&logoColor=white&logoSize=auto&link=https%3A%2F%2Fgithub.com%2Fyoanm%2Fgha-supported-versions-parser%2Freleases)
+![GitHub Tag](https://img.shields.io/github/v/tag/yoanm/gha-supported-versions-parser?sort=semver&logo=githubactions&logoColor=white&logoSize=auto)
 
 Lightweight composite github action parsing supported versions file
 
