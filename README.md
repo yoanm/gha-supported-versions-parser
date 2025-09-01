@@ -8,12 +8,11 @@ Lightweight composite github action parsing supported versions file
 
 Designed to avoid the hassle of managing versions on multiple workflow file.
 
-It circumvent two issues:
-- Inability to use `env` variable on `strategy.matrix`, while `steps` or `needs` is available. Using this action allows to define complex matrix with the different versions
-- 
+On reason it has been created is the inability to use `env` variable on `strategy.matrix`, while `steps` or `needs` is available. 
+Using this action allows to define complex matrix with the different versions.
 
 ### Supported versions file
-A supported version file is simple a JSON object with the following structure:
+A supported version file is a simple JSON object with the following structure:
 ````json
 {
   "{DEPENDENCY_NAME}": {"min": "x.y", "max": "x.y", "next": "x.y"},
@@ -120,9 +119,9 @@ jobs:
 ```
 ## yoanm/gha-supported-versions-parser
 ### Inputs
-- `path`: **Required** Path to the supported versions file from inside the repository
-- `dependency`: **Required** Path to the supported versions file from inside the repository
-- `with-summary`: Default to `true`, if not `false`, a summary containing fetch versions will be posted for the workflow run
+- `path`: **Required** Path to the supported versions file (local path)
+- `dependency`: **Required** Dependency name to fetch
+- `with-summary`: Default to `true`, if not `false`, a summary containing fetched versions will be posted for the workflow run
 
 ### Outputs
 - `min`: Minimal version configured for the given dependency
@@ -130,12 +129,12 @@ jobs:
 - `next`: Next version configured for the given dependency
 
 ## yoanm/gha-supported-versions-parser/github-downloader
-Simple composite action relying on curl to download the supporter version file.
+Simple composite action relying on curl to download the supported versions file.
 
 Use it in case you don't want/need to checkout the whole source code
 
 ### Inputs
-- `file-path`: **Required** Path to the supported versions file from inside the repository
+- `file-path`: **Required** Path to the supported versions file from inside the repository  (git path)
 - `ref`: Default to `github.ref`, provide the right one otherwise
 - `fetch-dir`: Default to `runner.temp`, provide a specific one if needed
 

@@ -1,6 +1,6 @@
 name: github-downloader
 description: |
-  @TODO
+  Fetch the provided supported versions file from a github repository
 
 inputs:
   file-path:

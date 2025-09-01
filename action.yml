@@ -1,6 +1,6 @@
 name: gha-supported-versions-parser
 description: |
-  @TODO
+  Parses supported versions file
 branding:
   icon: search
   color: green
