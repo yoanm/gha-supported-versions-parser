@@ -6,7 +6,7 @@ Which versions are eligible for receiving patches for security vulnerabilities d
 
 | Version | Supported |
 |---------|-----------|
-| *       | :x: (POC) |
+| v1.x    | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
