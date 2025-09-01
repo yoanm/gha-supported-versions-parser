@@ -137,6 +137,7 @@ jobs:
 
       - name: Downloader - Invalid path
         id: downloader-invalid-path-test
+        continue-on-error: true
         uses: ./github-downloader
         with:
           file-path: a/non/existent/file
