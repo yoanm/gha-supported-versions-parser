@@ -1,4 +1,4 @@
-name: gha-supported-versions-parser
+name: Supported versions parser
 description: |
   Parses supported versions file
 branding:
