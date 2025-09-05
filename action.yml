@@ -78,7 +78,7 @@ runs:
         echo "Max ${{ inputs.dependency }} version: ${{ steps.parse-versions.outputs.max }}"
         echo "Next ${{ inputs.dependency }} version: ${{ steps.parse-versions.outputs.next }}"
 
-    - uses: actions/github-script@v7
+    - uses: actions/github-script@v8
       if: ${{ inputs.with-summary == 'true' || inputs.with-summary == 1 }}
       continue-on-error: true
       with:
