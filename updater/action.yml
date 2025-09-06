@@ -57,7 +57,7 @@ runs:
 
     - shell: bash
       env:
-        FILE: ${{ inputs.file }}
+        FILE: ${{ inputs.path }}
         DEPENDENCY: ${{ inputs.dependency }}
         PROPERTY: ${{ inputs.property }}
         VALUE: ${{ inputs.value }}
