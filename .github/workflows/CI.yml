@@ -32,6 +32,7 @@ jobs:
         with:
           path: tests/data/basic-test.json
           dependency: php
+          with-summary: false
 
       - name: Validate "Parser - Basic test"
         shell: bash
@@ -61,6 +62,7 @@ jobs:
         with:
           path: tests/data/basic-test.json
           dependency: unknown-dep
+          with-summary: false
 
       - name: Validate "Parser - Unknown dependency"
         shell: bash
@@ -92,6 +94,7 @@ jobs:
         with:
           path: a/non/existent/file
           dependency: php
+          with-summary: false
 
       - name: Validate "Parser - Unknown file test"
         shell: bash
@@ -167,5 +170,51 @@ jobs:
           ACTUAL_JSON=$(echo "$ACTUAL_OUTPUTS" |  jq -c "." )
           if [[ "$ACTUAL_JSON" != "$EXPECTED_OUTPUTS" ]]; then
             echo "::error::Invalid outputs: expected '$EXPECTED_OUTPUTS', got '$ACTUAL_JSON' !"
+            exit 1
+          fi
+
+      - name: Fetch original versions for "Updater - Basic test"
+        id: fetch-updater-basic-test-original-versions
+        uses: ./
+        with:
+          path: tests/data/basic-test.json
+          dependency: symfony
+          with-summary: false
+
+      - name: Updater - Basic test
+        id: updater-basic-test
+        uses: ./updater
+        with:
+          path: tests/data/basic-test.json
+          dependency: symfony
+          version: max
+          value: 5.2
+
+      - name: Fetch updated versions for "Updater - Basic test"
+        id: fetch-updater-basic-test-updated-versions
+        uses: ./
+        with:
+          path: tests/data/basic-test.json
+          dependency: symfony
+          with-summary: false
+
+      - name: Validate "Updater - Basic test"
+        shell: bash
+        env:
+          ACTUAL_MIN: "${{ steps.fetch-updater-basic-test-updated-versions.outputs.min }}"
+          EXPECTED_MIN: "${{ steps.fetch-updater-basic-test-original-versions.outputs.min }}" # Not expected to be updated
+          ACTUAL_MAX: "${{ steps.fetch-updater-basic-test-updated-versions.outputs.max }}"
+          EXPECTED_MAX: "5.2"
+          ACTUAL_NEXT: "${{ steps.fetch-updater-basic-test-updated-versions.outputs.next }}"
+          EXPECTED_NEXT: "${{ steps.fetch-updater-basic-test-original-versions.outputs.next }}" # Not expected to be updated
+        run: |
+          if [[ "$ACTUAL_MIN" != "$EXPECTED_MIN" ]]; then
+            echo "::error::Invalid min version: expected '$EXPECTED_MIN', got '$ACTUAL_MIN' !"
+            exit 1
+          elif [[ "$ACTUAL_MAX" != "$EXPECTED_MAX" ]]; then
+            echo "::error::Invalid max version: expected '$EXPECTED_MAX', got '$ACTUAL_MAX' !"
+            exit 1
+          elif [[ "$ACTUAL_NEXT" != "$EXPECTED_NEXT" ]]; then
+            echo "::error::Invalid next version: expected '$EXPECTED_NEXT', got '$ACTUAL_NEXT' !"
             exit 1
           fi

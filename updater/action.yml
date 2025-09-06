@@ -1,0 +1,70 @@
+name: Supported versions updater
+description: |
+  Update supported versions file values
+branding:
+  icon: edit
+  color: green
+
+inputs:
+  path:
+    description: Path to the supported versions file
+    required: true
+  dependency:
+    description: Dependency name to update
+    required: true
+  version:
+    description: Version to update (e.g. `min` / `max` / `next`)
+    required: true
+  value:
+    description: Value to set for the given dependency version
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # Even if an input is marked as "required", empty/no value may be passed !
+    - shell: bash
+      run: |
+        # 🔎 Validate provided inputs ...
+
+        if [[ -z "${{ inputs.path }}" ]]; then
+          echo '::error::You must provide a path !'
+          exit 1
+        elif [[ ! -f "${{ inputs.path }}" ]]; then
+          echo '::error::Provided file doesn'"'"'t exist !'
+          exit 1
+        elif [[ ! -r "${{ inputs.path }}" ]]; then
+          echo '::error::Provided file is not readable !'
+          exit 1
+        elif [[ -z "${{ inputs.dependency }}" ]]; then
+          echo '::error::You must provide a dependency !'
+          exit 1
+        elif [[ -z "${{ inputs.version }}" ]]; then
+          echo '::error::You must provide a version property !'
+          exit 1
+        elif [[ "${{ inputs.version }}" != "min" && "${{ inputs.version }}" != "max" && "${{ inputs.version }}" != "next" ]]; then
+          echo '::error::Invalid version property: must be one of "min" / "max" / "next" !'
+          exit 1
+        fi
+
+        # inputs.value may be empty -> Up to the caller to validate this !
+
+    - shell: bash
+      env:
+        FILE: ${{ inputs.path }}
+        DEPENDENCY: ${{ inputs.dependency }}
+        PROPERTY: ${{ inputs.version }}
+        VALUE: ${{ inputs.value }}
+        # Directly overwritting the original file is not working with JQ as it leads to an empty file
+        # => A temporary file is required instead
+        TMP_FILE: "${{ runner.temp }}/supported-versions-auto-update-${{ inputs.dependency}}-${{ inputs.version }}.tmp"
+      run: |
+        # ✍️ Update ${{ inputs.dependency }}->${{ inputs.version }} version
+        jq -r --monochrome-output \
+          --arg dependency "${DEPENDENCY}" \
+          --arg property "${PROPERTY}" \
+          --arg version "${VALUE}" \
+          '. *= {$dependency: {$property: $version}}' \
+          $FILE > $TMP_FILE
+        
+        mv $TMP_FILE $FILE
