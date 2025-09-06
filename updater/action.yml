@@ -49,12 +49,6 @@ runs:
 
         # inputs.value may be empty -> Up to the caller to validate this !
 
-        # Ensure dependency is configured
-        if [[ ! "$(cat '${{ inputs.path }}' | jq '."${{ inputs.dependency }}" | length')" -gt 0 ]]; then
-          echo "::error::${{ inputs.dependency }} doesn't seem to exist !"
-          exit 1
-        fi
-
     - shell: bash
       env:
         FILE: ${{ inputs.path }}
@@ -65,7 +59,7 @@ runs:
         # => A temporary file is required instead
         TMP_FILE: "${{ runner.temp }}/supported-versions-auto-update-${{ inputs.dependency}}-${{ inputs.property }}.tmp"
       run: |
-        # Update ${{ inputs.dependency }}->${{ inputs.property }} version
+        # ✍️ Update ${{ inputs.dependency }}->${{ inputs.property }} version
         jq -r --monochrome-output \
           --arg dependency "${DEPENDENCY}" \
           --arg property "${PROPERTY}" \
