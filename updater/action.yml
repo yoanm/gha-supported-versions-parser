@@ -12,11 +12,11 @@ inputs:
   dependency:
     description: Dependency name to update
     required: true
-  property:
-    description: Property to update (e.g. `min` / `max` / `next`)
+  version:
+    description: Version to update (e.g. `min` / `max` / `next`)
     required: true
   value:
-    description: Value to set for the given dependency property
+    description: Value to set for the given dependency version
     required: true
 
 runs:
@@ -39,11 +39,11 @@ runs:
         elif [[ -z "${{ inputs.dependency }}" ]]; then
           echo '::error::You must provide a dependency !'
           exit 1
-        elif [[ -z "${{ inputs.property }}" ]]; then
-          echo '::error::You must provide a property !'
+        elif [[ -z "${{ inputs.version }}" ]]; then
+          echo '::error::You must provide a version property !'
           exit 1
-        elif [[ "${{ inputs.property }}" != "min" && "${{ inputs.property }}" != "max" && "${{ inputs.property }}" != "next" ]]; then
-          echo '::error::Invalid property: must be one of "min" / "max" / "next" !'
+        elif [[ "${{ inputs.version }}" != "min" && "${{ inputs.version }}" != "max" && "${{ inputs.version }}" != "next" ]]; then
+          echo '::error::Invalid version property: must be one of "min" / "max" / "next" !'
           exit 1
         fi
 
@@ -53,13 +53,13 @@ runs:
       env:
         FILE: ${{ inputs.path }}
         DEPENDENCY: ${{ inputs.dependency }}
-        PROPERTY: ${{ inputs.property }}
+        PROPERTY: ${{ inputs.version }}
         VALUE: ${{ inputs.value }}
         # Directly overwritting the original file is not working with JQ as it leads to an empty file
         # => A temporary file is required instead
-        TMP_FILE: "${{ runner.temp }}/supported-versions-auto-update-${{ inputs.dependency}}-${{ inputs.property }}.tmp"
+        TMP_FILE: "${{ runner.temp }}/supported-versions-auto-update-${{ inputs.dependency}}-${{ inputs.version }}.tmp"
       run: |
-        # ✍️ Update ${{ inputs.dependency }}->${{ inputs.property }} version
+        # ✍️ Update ${{ inputs.dependency }}->${{ inputs.version }} version
         jq -r --monochrome-output \
           --arg dependency "${DEPENDENCY}" \
           --arg property "${PROPERTY}" \
