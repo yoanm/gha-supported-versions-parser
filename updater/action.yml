@@ -65,9 +65,12 @@ runs:
         # => A temporary file is required instead
         TMP_FILE: "${{ runner.temp }}/supported-versions-auto-update-${{ inputs.dependency}}-${{ inputs.property }}.tmp"
       run: |
-        # Update ${DEPENDENCY}->${PROPERTY} version
-        jq -r --monochrome-output --arg version "${VALUE}" \
-          ". *= {\"${DEPENDENCY}\": {\"${PROPERTY}\": $version}}" \
+        # Update ${{ inputs.dependency }}->${{ inputs.property }} version
+        jq -r --monochrome-output \
+          --arg dependency "${DEPENDENCY}" \
+          --arg property "${PROPERTY}" \
+          --arg version "${VALUE}" \
+          '. *= {$dependency: {$property: $version}}' \
           $FILE > $TMP_FILE
         
         mv $TMP_FILE $FILE
