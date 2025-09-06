@@ -128,6 +128,15 @@ jobs:
 - `max`: Maximal version configured for the given dependency
 - `next`: Next version configured for the given dependency
 
+## yoanm/gha-supported-versions-parser/updater
+Simple composite action updating supported versions file properties values
+
+### Inputs
+- `path`: **Required** Path to the supported versions file (local path)
+- `dependency`: **Required** Dependency name to fetch
+- `version`: **Required** Which version to update (e.g. `min` / `max` / `next`)
+- `value`: **Required** New value to apply for the given dependency and property
+
 ## yoanm/gha-supported-versions-parser/github-downloader
 Simple composite action relying on curl to download the supported versions file.
 
