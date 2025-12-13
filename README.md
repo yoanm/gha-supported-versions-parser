@@ -8,7 +8,7 @@ Lightweight composite github action parsing supported versions file
 
 Designed to avoid the hassle of managing versions on multiple workflow file.
 
-On reason it has been created is the inability to use `env` variable on `strategy.matrix`, while `steps` or `needs` is available. 
+One reason it has been created is the inability to use `env` variable on `strategy.matrix`, while `steps` or `needs` is available.
 Using this action allows to define complex matrix with the different versions.
 
 ### Supported versions file
@@ -17,7 +17,7 @@ A supported version file is a simple JSON object with the following structure:
 {
   "{DEPENDENCY_NAME}": {"min": "x.y", "max": "x.y", "next": "x.y"},
   ...
-  "{DEPENDENCY_NAME}": {"min": "x.y", "max": "x.y", "next": "x.y"}
+  "{DEPENDENCY_NAME}": {"min": "x.y", "max": "x.y", "next": null}
 }
 ````
 
@@ -25,6 +25,10 @@ A supported version file is a simple JSON object with the following structure:
 - `min`: Minimal version to assess on the CI
 - `max`: Maximal version to assess on the CI
 - `next`: Next version to assess on the CI, used for nightly builds to ensure project will work with currently in development version
+
+> [!WARNING]
+>
+> When there is no "next" version available, `null` is used !
 
 ## Usage
 
@@ -70,10 +74,8 @@ jobs:
     outputs:
       php-min: ${{ steps.fetch-php-versions.outputs.min }}
       php-max: ${{ steps.fetch-php-versions.outputs.max }}
-      php-next: ${{ steps.fetch-php-versions.outputs.next }}
       symfony-min: ${{ steps.fetch-symfony-versions.outputs.min }}
       symfony-max: ${{ steps.fetch-symfony-versions.outputs.max }}
-      symfony-next: ${{ steps.fetch-symfony-versions.outputs.next }}
     steps:
       # Use the following to download the supported version file (a checkout would also work)
       - name: Fetch supported versions file
@@ -88,6 +90,13 @@ jobs:
         with:
           path: ${{ steps.fetch-file.outputs.path }}
           dependency: php
+
+      - name: Fetch Symfony supported versions
+        id: fetch-symfony-versions
+        uses: yoanm/gha-supported-versions-parser@v1
+        with:
+          path: ${{ steps.fetch-file.outputs.path }}
+          dependency: symfony
 
   tests:
     name: PHP ${{ matrix.php-version }} & Symfony {{ matrix.symfony-version }}
@@ -128,6 +137,9 @@ jobs:
 - `max`: Maximal version configured for the given dependency
 - `next`: Next version configured for the given dependency
 
+> [!WARNING]
+>
+> In case `next` property value on supported version file is `null`, action output value will be `"null"` !
 ## yoanm/gha-supported-versions-parser/updater
 Simple composite action updating supported versions file properties values
 
@@ -136,6 +148,11 @@ Simple composite action updating supported versions file properties values
 - `dependency`: **Required** Dependency name to fetch
 - `version`: **Required** Which version to update (e.g. `min` / `max` / `next`)
 - `value`: **Required** New value to apply for the given dependency and property
+
+> [!IMPORTANT]
+>
+> If provided `value` is `""` or `"null"`, `null` will be used on supported version file !<br/>
+> <i> Useful mostly for `next` version, which may not exist !</i>
 
 ## yoanm/gha-supported-versions-parser/github-downloader
 Simple composite action relying on curl to download the supported versions file.
