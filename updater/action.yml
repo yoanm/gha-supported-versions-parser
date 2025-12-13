@@ -16,7 +16,7 @@ inputs:
     description: Version to update (e.g. `min` / `max` / `next`)
     required: true
   value:
-    description: Value to set for the given dependency version
+    description: Value to set for the given dependency version. Empty value or `"null"` value will be replaced by `null`
     required: true
 
 runs:
@@ -47,15 +47,13 @@ runs:
           exit 1
         fi
 
-        # inputs.value may be empty -> Up to the caller to validate this !
-
     - shell: bash
       env:
         FILE: ${{ inputs.path }}
         DEPENDENCY: ${{ inputs.dependency }}
         PROPERTY: ${{ inputs.version }}
         VALUE: ${{ inputs.value }}
-        # Directly overwritting the original file is not working with JQ as it leads to an empty file
+        # Directly overwriting the original file is not working with JQ as it leads to an empty file
         # => A temporary file is required instead
         TMP_FILE: "${{ runner.temp }}/supported-versions-auto-update-${{ inputs.dependency}}-${{ inputs.version }}.tmp"
       run: |
@@ -64,7 +62,7 @@ runs:
           --arg dependency "${DEPENDENCY}" \
           --arg property "${PROPERTY}" \
           --arg version "${VALUE}" \
-          '. *= {$dependency: {$property: $version}}' \
+          '. *= {$dependency: {$property: (if "" == $version or "null" == $version then null else $version end)}}' \
           $FILE > $TMP_FILE
         
         mv $TMP_FILE $FILE

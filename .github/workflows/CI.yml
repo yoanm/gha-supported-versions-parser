@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tests:
-    name: Tests
+  tests-parser:
+    name: Tests - Parser
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,7 +26,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v5
 
-      - name: Parser - Basic test
+      - name: Basic test
         id: basic-test
         uses: ./
         with:
@@ -34,7 +34,7 @@ jobs:
           dependency: php
           with-summary: false
 
-      - name: Validate "Parser - Basic test"
+      - name: Validate "Basic test"
         shell: bash
         env:
           ACTUAL_MIN: "${{ steps.basic-test.outputs.min }}"
@@ -55,7 +55,36 @@ jobs:
             exit 1
           fi
 
-      - name: Parser - Unknown dependency
+      - name: Without next version
+        id: without-next-version-test
+        uses: ./
+        with:
+          path: tests/data/basic-test.json
+          dependency: symfony
+          with-summary: false
+
+      - name: Validate "Without next version"
+        shell: bash
+        env:
+          ACTUAL_MIN: "${{ steps.without-next-version-test.outputs.min }}"
+          EXPECTED_MIN: "4.4"
+          ACTUAL_MAX: "${{ steps.without-next-version-test.outputs.max }}"
+          EXPECTED_MAX: "6.4"
+          ACTUAL_NEXT: "${{ steps.without-next-version-test.outputs.next }}"
+          EXPECTED_NEXT: "null"
+        run: |
+          if [[ "$ACTUAL_MIN" != "$EXPECTED_MIN" ]]; then
+            echo "::error::Invalid min version: expected '$EXPECTED_MIN', got '$ACTUAL_MIN' !"
+            exit 1
+          elif [[ "$ACTUAL_MAX" != "$EXPECTED_MAX" ]]; then
+            echo "::error::Invalid max version: expected '$EXPECTED_MAX', got '$ACTUAL_MAX' !"
+            exit 1
+          elif [[ "$ACTUAL_NEXT" != "$EXPECTED_NEXT" ]]; then
+            echo "::error::Invalid next version: expected '$EXPECTED_NEXT', got '$ACTUAL_NEXT' !"
+            exit 1
+          fi
+
+      - name: Unknown dependency
         id: unknown-dep-test
         continue-on-error: true
         uses: ./
@@ -64,7 +93,7 @@ jobs:
           dependency: unknown-dep
           with-summary: false
 
-      - name: Validate "Parser - Unknown dependency"
+      - name: Validate "Unknown dependency"
         shell: bash
         env:
           ACTUAL_OUTCOME: "${{ steps.unknown-dep-test.outcome }}"
@@ -87,7 +116,7 @@ jobs:
             exit 1
           fi
 
-      - name: Parser - Unknown file test
+      - name: Unknown file test
         id: unknown-file-test
         continue-on-error: true
         uses: ./
@@ -96,7 +125,7 @@ jobs:
           dependency: php
           with-summary: false
 
-      - name: Validate "Parser - Unknown file test"
+      - name: Validate "Unknown file test"
         shell: bash
         env:
           ACTUAL_OUTCOME: "${{ steps.unknown-file-test.outcome }}"
@@ -119,16 +148,25 @@ jobs:
             exit 1
           fi
 
-      - name: Downloader - Basic test
-        id: downloader-basic-test
+  tests-downloader:
+    name: Tests - Downloader
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      - name: Basic test
+        id: basic-test
         uses: ./github-downloader
         with:
           file-path: tests/data/basic-test.json
 
-      - name: Validate "Downloader - Basic test"
+      - name: Validate "Basic test"
         shell: bash
         env:
-          ACTUAL_PATH: "${{ steps.downloader-basic-test.outputs.path }}"
+          ACTUAL_PATH: "${{ steps.basic-test.outputs.path }}"
           EXPECTED_PATH: '${{ runner.temp }}/supported-versions.json'
         run: |
           if [[ "$ACTUAL_PATH" != "$EXPECTED_PATH" ]]; then
@@ -143,21 +181,21 @@ jobs:
             exit 1
           fi
 
-      - name: Downloader - Invalid path test
-        id: downloader-invalid-path-test
+      - name: Invalid path test
+        id: invalid-path-test
         continue-on-error: true
         uses: ./github-downloader
         with:
           file-path: a/non/existent/file
 
-      - name: Validate "Downloader - Invalid path test"
+      - name: Validate "Invalid path test"
         shell: bash
         env:
-          ACTUAL_OUTCOME: "${{ steps.downloader-invalid-path-test.outcome }}"
+          ACTUAL_OUTCOME: "${{ steps.invalid-path-test.outcome }}"
           EXPECTED_OUTCOME: "failure"
-          ACTUAL_CONCLUSION: "${{ steps.downloader-invalid-path-test.conclusion }}"
+          ACTUAL_CONCLUSION: "${{ steps.invalid-path-test.conclusion }}"
           EXPECTED_CONCLUSION: "success"
-          ACTUAL_OUTPUTS: "${{ toJSON(steps.downloader-invalid-path-test.outputs) }}"
+          ACTUAL_OUTPUTS: "${{ toJSON(steps.invalid-path-test.outputs) }}"
           EXPECTED_OUTPUTS: '{"path":""}'
         run: |
           if [[ "$ACTUAL_OUTCOME" != "$EXPECTED_OUTCOME" ]]; then
@@ -173,16 +211,24 @@ jobs:
             exit 1
           fi
 
-      - name: Fetch original versions for "Updater - Basic test"
-        id: fetch-updater-basic-test-original-versions
+  tests-updater:
+    name: Tests - Updater
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v5
+
+      - name: Fetch original versions for "Basic test"
+        id: fetch-basic-test-original-versions
         uses: ./
         with:
           path: tests/data/basic-test.json
           dependency: symfony
           with-summary: false
 
-      - name: Updater - Basic test
-        id: updater-basic-test
+      - name: Basic test
         uses: ./updater
         with:
           path: tests/data/basic-test.json
@@ -190,23 +236,76 @@ jobs:
           version: max
           value: 5.2
 
-      - name: Fetch updated versions for "Updater - Basic test"
-        id: fetch-updater-basic-test-updated-versions
+      - name: Fetch updated versions for "Basic test"
+        id: fetch-basic-test-updated-versions
         uses: ./
         with:
           path: tests/data/basic-test.json
           dependency: symfony
           with-summary: false
 
-      - name: Validate "Updater - Basic test"
+      - name: Validate "Basic test"
         shell: bash
         env:
-          ACTUAL_MIN: "${{ steps.fetch-updater-basic-test-updated-versions.outputs.min }}"
-          EXPECTED_MIN: "${{ steps.fetch-updater-basic-test-original-versions.outputs.min }}" # Not expected to be updated
-          ACTUAL_MAX: "${{ steps.fetch-updater-basic-test-updated-versions.outputs.max }}"
+          ACTUAL_MIN: "${{ steps.fetch-basic-test-updated-versions.outputs.min }}"
+          EXPECTED_MIN: "${{ steps.fetch-basic-test-original-versions.outputs.min }}" # Not expected to be updated
+          ACTUAL_MAX: "${{ steps.fetch-basic-test-updated-versions.outputs.max }}"
           EXPECTED_MAX: "5.2"
-          ACTUAL_NEXT: "${{ steps.fetch-updater-basic-test-updated-versions.outputs.next }}"
-          EXPECTED_NEXT: "${{ steps.fetch-updater-basic-test-original-versions.outputs.next }}" # Not expected to be updated
+          ACTUAL_NEXT: "${{ steps.fetch-basic-test-updated-versions.outputs.next }}"
+          EXPECTED_NEXT: "${{ steps.fetch-basic-test-original-versions.outputs.next }}" # Not expected to be updated
+        run: |
+          if [[ "$ACTUAL_MIN" != "$EXPECTED_MIN" ]]; then
+            echo "::error::Invalid min version: expected '$EXPECTED_MIN', got '$ACTUAL_MIN' !"
+            exit 1
+          elif [[ "$ACTUAL_MAX" != "$EXPECTED_MAX" ]]; then
+            echo "::error::Invalid max version: expected '$EXPECTED_MAX', got '$ACTUAL_MAX' !"
+            exit 1
+          elif [[ "$ACTUAL_NEXT" != "$EXPECTED_NEXT" ]]; then
+            echo "::error::Invalid next version: expected '$EXPECTED_NEXT', got '$ACTUAL_NEXT' !"
+            exit 1
+          fi
+
+      - name: Fetch original versions for "Empty versions"
+        id: fetch-empty-versions-test-original-versions
+        uses: ./
+        with:
+          path: tests/data/basic-test.json
+          dependency: php
+          with-summary: false
+
+      - name: Empty versions - "null" value
+        uses: ./updater
+        with:
+          path: tests/data/basic-test.json
+          dependency: php
+          version: min
+          value: "null"
+
+      - name: Empty versions - Empty value
+        uses: ./updater
+        with:
+          path: tests/data/basic-test.json
+          dependency: php
+          version: max
+          value: ""
+
+      - name: Fetch updated versions for "Empty versions"
+        id: fetch-empty-versions-test-updated-versions
+        uses: ./
+        with:
+          path: tests/data/basic-test.json
+          dependency: php
+          with-summary: false
+
+      - name: Validate "Empty versions"
+        shell: bash
+        env:
+          ACTUAL_MIN: "${{ steps.fetch-empty-versions-test-updated-versions.outputs.min }}"
+          EXPECTED_MIN: "null"
+          ACTUAL_MAX: "${{ steps.fetch-empty-versions-test-updated-versions.outputs.max }}"
+          EXPECTED_MAX: "null"
+          ACTUAL_NEXT: "${{ steps.fetch-empty-versions-test-updated-versions.outputs.next }}"
+          EXPECTED_NEXT: "${{ steps.fetch-empty-versions-test-original-versions.outputs.next }}" # Not expected to be updated
         run: |
           if [[ "$ACTUAL_MIN" != "$EXPECTED_MIN" ]]; then
             echo "::error::Invalid min version: expected '$EXPECTED_MIN', got '$ACTUAL_MIN' !"

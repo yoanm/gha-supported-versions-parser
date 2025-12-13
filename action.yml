@@ -25,7 +25,7 @@ outputs:
     description: Maximal version configured for the given dependency
     value: ${{ steps.parse-versions.outputs.max }}
   next:
-    description: Next version configured for the given dependency
+    description: Next version configured for the given dependency. Value could be `"null"` !
     value: ${{ steps.parse-versions.outputs.next }}
 
 runs:
@@ -76,7 +76,7 @@ runs:
 
         echo "Min ${{ inputs.dependency }} version: ${{ steps.parse-versions.outputs.min }}"
         echo "Max ${{ inputs.dependency }} version: ${{ steps.parse-versions.outputs.max }}"
-        echo "Next ${{ inputs.dependency }} version: ${{ steps.parse-versions.outputs.next }}"
+        echo "Next ${{ inputs.dependency }} version: ${{ 'null' == steps.parse-versions.outputs.next && 'None !' || steps.parse-versions.outputs.next}}"
 
     - uses: actions/github-script@v8
       if: ${{ inputs.with-summary == 'true' || inputs.with-summary == 1 }}
@@ -94,7 +94,7 @@ runs:
               [
                 '${{ steps.parse-versions.outputs.min }}',
                 '${{ steps.parse-versions.outputs.max }}',
-                '${{ steps.parse-versions.outputs.next }}'
+                '${{ 'null' == steps.parse-versions.outputs.next && 'None !' || steps.parse-versions.outputs.next}}'
               ]
             ])
             .write()
