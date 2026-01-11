@@ -24,7 +24,7 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Basic test
         id: basic-test
@@ -155,7 +155,7 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Basic test
         id: basic-test
@@ -218,7 +218,7 @@ jobs:
       contents: read
     steps:
       - name: Check out code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Fetch original versions for "Basic test"
         id: fetch-basic-test-original-versions
